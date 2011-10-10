@@ -1,4 +1,5 @@
-#!/usr/bin/env ruby
+#!/bin/bash
 
-require File.expand_path('../../lib/ci_monitor', __FILE__)
+cd `pwd`/$(dirname $0)/../lib
+ruby ci_monitor.rb > ../buildlight.log 2>&1 &
 

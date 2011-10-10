@@ -25,6 +25,6 @@ begin
     sleep SLEEP
   end
 ensure
-  cleanup
+  #cleanup
   raise
 end

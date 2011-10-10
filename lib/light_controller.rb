@@ -4,12 +4,10 @@ class LightController
 
   COLOUR_MAP = {
     :default => [:blue],
-    :failure => [:red, :off],
-    :claimed => [:red],
-    :aborted => [:red],
-    :success => [:green],
-    :unstable => [[:yellow]],
-    :unknown => [[:white]],
+    :failed => [:red],
+    :aborted => [:yellow],
+    :passed => [:green],
+    :unknown => [:blue],
     :stopped => [:off]
   }
 
@@ -65,28 +63,25 @@ class LightController
     previous_state = @state
     previous_build_num = @build_num
 
-    any = lambda do |state|
+    any_status = lambda do |state|
       project_statuses.collect(&:state).include? state
     end
 
-    if any.call 'broken'
-      @state = :failure
-    elsif any.call 'unstable'
-      @state = :unstable
-    elsif any.call 'aborted'
+    if any_status.call 'failure'
+      @state = :failed
+    elsif any_status.call 'aborted'
       @state = :aborted
-    elsif any.call 'claimed'
-      @state = :claimed
-    elsif any.call 'stable'
-      @state = :success
-    elsif any.call 'back to normal'
-      @state = :success
+    elsif any_status.call 'success'
+      @state = :passed
     else
       @state = :unknown
     end
 
     @build_num = project_statuses.first.build_number
     @current_colours = COLOUR_MAP[@state].clone
+    if project_statuses.collect(&:building).include? ['true']
+		@current_colours += [:off]
+    end
     project_description = project_statuses.first.name
     announce_transition(previous_state, @state, previous_build_num, @build_num, project_description)
 

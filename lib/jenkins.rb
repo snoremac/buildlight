@@ -16,36 +16,29 @@ def get_all_projects_status(host, projects)
     status.name = project
     status.state = 'unknown'
     
-    rss_url = "http://#{host}/job/#{project}/rssAll"
-
-    puts "Polling #{rss_url}"
-                      contents = open(rss_url).read
+    rss_url = "http://#{host}/job/#{project}/api/xml"
+    contents = open(rss_url).read
     xml = XmlSimple.xml_in(contents)
-    latest_build_info = xml['entry'].first['title'].first
-    latest_build_date = xml['entry'].first['published'].first
+	all_builds = xml['build'].collect {|build| build['number'].to_s}.sort.reverse
 
-    match = latest_build_info.match(/#([0-9]+) \((.+)\)$/)
-    build_status_text = match[2]
+    last_result = nil
+	building = nil
+	while !last_result do
+    	rss_url = "http://#{host}/job/#{project}/#{all_builds.shift}/api/xml"
+    	contents = open(rss_url).read
+    	xml = XmlSimple.xml_in(contents)
+		building ||= xml['building']
+		if xml['result'] 
+			last_result = xml['result'].first.downcase     
+		end
+	end
+	
+	status.building = building
+    latest_build_date = xml['timestamp'].first
     status.date = latest_build_date
-    status.state = build_status_text
-    status.build_number = match[1].to_i
+    status.state = last_result
+    status.build_number = xml['number'].first
 
-    if build_status_text =~ /still/
-	status.state = "unstable"
-    end
-
-    if build_status_text =~ /started/
-	status.state = "unstable"
-    end
-
-    if build_status_text =~ /broken/
-	status.state = "broken"
-    end
-
-
-    if build_status_text == 'broken'
-      status.state = 'claimed' if build_claimed? host, status
-    end
     statuses << status
   end
 

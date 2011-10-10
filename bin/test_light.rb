@@ -4,7 +4,7 @@ require 'rubygems'
 require 'usb'
 
 index = ARGV[0]
-colours = ["\x01", "\x02", "\x04", "\x03"]
+colours = ["\x01", "\x02", "\x04", "\x03", "\x05", "\x06", "\x07", "\x00"]
 colour = colours[ARGV[1].to_i]
 
 devices = USB.devices.find_all{|device| device.idVendor == 0x0fc5 && device.idProduct == 0xb080}
