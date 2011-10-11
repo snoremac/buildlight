@@ -6,7 +6,7 @@ require 'jenkins'
 require 'light_controller'
 require 'drivers/delcom_904006'
 
-SLEEP = 30
+SLEEP = 10
 keep_alive = true
 
 
