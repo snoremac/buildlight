@@ -67,7 +67,9 @@ class LightController
       project_statuses.collect(&:state).include? state
     end
 
-    if any_status.call 'failure'
+    if any_status.call 'stopped'
+      @state = :stopped
+    elsif any_status.call 'failure'
       @state = :failed
     elsif any_status.call 'aborted'
       @state = :aborted

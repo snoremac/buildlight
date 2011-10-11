@@ -21,24 +21,28 @@ def get_all_projects_status(host, projects)
     xml = XmlSimple.xml_in(contents)
 	all_builds = xml['build'].collect {|build| build['number'].to_s}.sort.reverse
 
-    last_result = nil
+   	last_result = nil
 	building = nil
-	while !last_result do
-    	rss_url = "http://#{host}/job/#{project}/#{all_builds.shift}/api/xml"
-    	contents = open(rss_url).read
-    	xml = XmlSimple.xml_in(contents)
-		building ||= xml['building']
-		if xml['result'] 
-			last_result = xml['result'].first.downcase     
+	if xml['color'].first == "disabled"
+		last_result = "stopped"
+		building = "false"
+	else
+		while !last_result do
+    			rss_url = "http://#{host}/job/#{project}/#{all_builds.shift}/api/xml"
+    			contents = open(rss_url).read
+    			xml = XmlSimple.xml_in(contents)
+			building ||= xml['building']
+			if xml['result'] 
+				last_result = xml['result'].first.downcase     
+			end
 		end
-	end
+	  	latest_build_date = xml['timestamp'].first
+   		status.date = latest_build_date
+    	status.build_number = xml['number'].first
+	 end
 	
 	status.building = building
-    latest_build_date = xml['timestamp'].first
-    status.date = latest_build_date
-    status.state = last_result
-    status.build_number = xml['number'].first
-
+  	status.state = last_result
     statuses << status
   end
 
