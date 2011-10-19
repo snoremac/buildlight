@@ -19,7 +19,7 @@ def get_all_projects_status(host, projects)
     rss_url = "http://#{host}/job/#{project}/api/xml"
     contents = open(rss_url).read
     xml = XmlSimple.xml_in(contents)
-	all_builds = xml['build'].collect {|build| build['number'].to_s}.sort.reverse
+	all_builds = xml['build'].collect {|build| build['number'][0].to_i}.sort.reverse
 
    	last_result = nil
 	building = nil
